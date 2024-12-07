@@ -21,9 +21,9 @@ The following libraries and tools were used in this project:
 ### Tables:
 1. **tables**:
     ```sql
-USE master;
-CREATE DATABASE TheRestaurantDb2;
-
+   USE master;
+    CREATE DATABASE TheRestaurantDb2;
+    
     CREATE TABLE tables (
         id INTEGER PRIMARY KEY IDENTITY(1,1),
         table_number INTEGER NOT NULL UNIQUE,
