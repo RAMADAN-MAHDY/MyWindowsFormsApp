@@ -58,3 +58,4 @@ D:\my project\desk top app\MyWindowsFormsApp\bin\Debug\net9.0-windows\runtimes\w
 D:\my project\desk top app\MyWindowsFormsApp\bin\Debug\net9.0-windows\runtimes\win-x86\native\Microsoft.Data.SqlClient.SNI.dll
 D:\my project\desk top app\MyWindowsFormsApp\bin\Debug\net9.0-windows\runtimes\win\lib\net8.0\System.Runtime.Caching.dll
 D:\my project\desk top app\MyWindowsFormsApp\obj\Debug\net9.0-windows\MyWindow.5C6230FE.Up2Date
+D:\my project\desk top app\MyWindowsFormsApp\obj\Debug\net9.0-windows\MyWindowsFormsApp.sourcelink.json

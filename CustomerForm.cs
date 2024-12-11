@@ -30,7 +30,152 @@ public partial class CustomerForm : Form
         LoadTables();
     }
 
-    private void InitializeComponent()
+    private void LoadConfiguration()
+    {
+        var builder = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+        configuration = builder.Build();
+    }
+
+private void SetConnection()
+{
+    var builder = new ConfigurationBuilder()
+        .SetBasePath(Directory.GetCurrentDirectory())
+        .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+    configuration = builder.Build();
+
+    string connectionString = configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string not found.");
+    sql_con = new SqlConnection(connectionString);
+}
+
+
+
+private void LoadTables()
+{
+    if (sql_con?.State == ConnectionState.Closed)
+        sql_con?.Open();
+    string query = "SELECT table_number, capacity FROM tables"; // إزالة عمود is_reserved
+    dataAdapter = new SqlDataAdapter(query, sql_con);
+    dataTable = new DataTable();
+    dataAdapter.Fill(dataTable);
+    tablesGridView!.DataSource = dataTable;
+
+    sql_con?.Close();
+}
+
+
+private void ReserveTable(int tableNumber, string customerName, DateTime reservationTime, int duration)
+{
+    string getTableIdQuery = $"SELECT id FROM tables WHERE table_number = @tableNumber";
+    int tableId = GetTableId(getTableIdQuery, tableNumber);
+
+    string checkConflictQuery = @"
+        SELECT COUNT(*)
+        FROM reservations
+        WHERE table_id = @tableId AND (
+            @reservationTime < DATEADD(MINUTE, duration, reservation_time) AND
+            DATEADD(MINUTE, @duration, @reservationTime) > reservation_time
+        )";
+    SqlCommand checkCommand = new SqlCommand(checkConflictQuery, sql_con);
+    checkCommand.Parameters.AddWithValue("@tableId", tableId);
+    checkCommand.Parameters.AddWithValue("@reservationTime", reservationTime);
+    checkCommand.Parameters.AddWithValue("@duration", duration);
+
+    sql_con?.Open();
+    int conflictCount = (int)checkCommand.ExecuteScalar()!;
+    sql_con?.Close();
+
+    if (conflictCount > 0)
+    {
+        MessageBox.Show("The reservation conflicts with an existing reservation. Please choose a different time or duration.");
+        return;
+    }
+
+    string query = @"
+        INSERT INTO reservations (table_id, customer_name, reservation_time, duration)
+        VALUES (@tableId, @customerName, @reservationTime, @duration)";
+    SqlCommand insertCommand = new SqlCommand(query, sql_con);
+    insertCommand.Parameters.AddWithValue("@tableId", tableId);
+    insertCommand.Parameters.AddWithValue("@customerName", customerName);
+    insertCommand.Parameters.AddWithValue("@reservationTime", reservationTime);
+    insertCommand.Parameters.AddWithValue("@duration", duration);
+    ExecuteQuery(insertCommand);
+
+    query = $"UPDATE tables SET is_reserved = 1 WHERE table_number = @tableNumber";
+    SqlCommand updateCommand = new SqlCommand(query, sql_con);
+    updateCommand.Parameters.AddWithValue("@tableNumber", tableNumber);
+    ExecuteQuery(updateCommand);
+
+    var timer = new System.Timers.Timer(duration * 60 * 1000);
+    timer.Elapsed += (sender, e) =>
+    {
+        string resetQuery = $"UPDATE tables SET is_reserved = 0 WHERE table_number = @tableNumber";
+        SqlCommand resetCommand = new SqlCommand(resetQuery, sql_con);
+        resetCommand.Parameters.AddWithValue("@tableNumber", tableNumber);
+        ExecuteQuery(resetCommand);
+        timer.Stop();
+    };
+    timer.Start();
+
+    MessageBox.Show("تم الحجز بنجاح!");
+}
+
+
+private int GetTableId(string query, int tableNumber)
+{
+    if (sql_con?.State == ConnectionState.Closed)
+        sql_con?.Open();
+    SqlCommand sql_cmd = new SqlCommand(query, sql_con);
+    sql_cmd.Parameters.AddWithValue("@tableNumber", tableNumber);
+    int tableId = (int)sql_cmd.ExecuteScalar();
+    sql_con?.Close();
+    return tableId;
+}
+
+private void ExecuteQuery(SqlCommand sql_cmd)
+{
+    if (sql_con?.State == ConnectionState.Closed)
+        sql_con?.Open();
+    sql_cmd.ExecuteNonQuery();
+    sql_con?.Close();
+}
+
+
+private void reserveButton_Click(object? sender, EventArgs e)
+{
+    if (string.IsNullOrWhiteSpace(txtTableNumber!.Text) ||
+        string.IsNullOrWhiteSpace(txtCustomerName!.Text) ||
+        string.IsNullOrWhiteSpace(txtDuration!.Text))
+    {
+        MessageBox.Show("يرجى ملء جميع الحقول المطلوبة.");
+        return;
+    }
+
+    int tableNumber = int.Parse(txtTableNumber!.Text);
+    string customerName = txtCustomerName!.Text;
+    DateTime reservationTime = dateTimePicker!.Value;
+    int duration = int.Parse(txtDuration!.Text);
+
+    ReserveTable(tableNumber, customerName, reservationTime, duration);
+}
+
+
+
+    private void tablesGridView_CellClick(object? sender, DataGridViewCellEventArgs e)
+    {
+        if (e.RowIndex >= 0)
+        {
+            DataGridViewRow row = tablesGridView!.Rows[e.RowIndex];
+            txtTableNumber!.Text = row.Cells["table_number"].Value.ToString();
+            dateTimePicker!.Value = DateTime.Now; // Reset to current time for a new reservation
+            txtDuration!.Text = "60"; // Default duration
+        }
+    }
+
+
+
+        private void InitializeComponent()
     {
         this.tablesGridView = new System.Windows.Forms.DataGridView();
         this.txtTableNumber = new System.Windows.Forms.TextBox();
@@ -51,7 +196,7 @@ public partial class CustomerForm : Form
         this.tablesGridView.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
         this.tablesGridView.Location = new System.Drawing.Point(12, 12);
         this.tablesGridView.Name = "tablesGridView";
-        this.tablesGridView.Size = new System.Drawing.Size(776, 150);
+        this.tablesGridView.Size = new System.Drawing.Size(276, 150);
         this.tablesGridView.TabIndex = 0;
         this.tablesGridView.CellClick += new DataGridViewCellEventHandler(this.tablesGridView_CellClick);
         
@@ -61,7 +206,7 @@ public partial class CustomerForm : Form
         this.lblTableNumber.AutoSize = true;
         this.lblTableNumber.Location = new System.Drawing.Point(12, 170);
         this.lblTableNumber.Name = "lblTableNumber";
-        this.lblTableNumber.Size = new System.Drawing.Size(74, 13);
+        this.lblTableNumber.Size = new System.Drawing.Size(174, 13);
         this.lblTableNumber.TabIndex = 6;
         this.lblTableNumber.Text = "Table Number:";
         
@@ -104,10 +249,13 @@ public partial class CustomerForm : Form
         // 
         // dateTimePicker
         // 
-        this.dateTimePicker.Location = new System.Drawing.Point(274, 190);
-        this.dateTimePicker.Name = "dateTimePicker";
-        this.dateTimePicker.Size = new System.Drawing.Size(200, 20);
-        this.dateTimePicker.TabIndex = 3;
+       this.dateTimePicker.CustomFormat = "yyyy-MM-dd HH:mm";
+this.dateTimePicker.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
+this.dateTimePicker.Location = new System.Drawing.Point(274, 190);
+this.dateTimePicker.Name = "dateTimePicker";
+this.dateTimePicker.Size = new System.Drawing.Size(200, 20);
+this.dateTimePicker.TabIndex = 3;
+
         
         // 
         // lblDuration
@@ -117,7 +265,7 @@ public partial class CustomerForm : Form
         this.lblDuration.Name = "lblDuration";
         this.lblDuration.Size = new System.Drawing.Size(50, 13);
         this.lblDuration.TabIndex = 9;
-        this.lblDuration.Text = "Duration:";
+        this.lblDuration.Text = "Set duration in minutes:";
         
         // 
         // txtDuration
@@ -160,111 +308,5 @@ public partial class CustomerForm : Form
         ((System.ComponentModel.ISupportInitialize)(this.tablesGridView)).EndInit();
         this.ResumeLayout(false);
         this.PerformLayout();
-    }
-
-    private void LoadConfiguration()
-    {
-        var builder = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-        configuration = builder.Build();
-    }
-
-    private void SetConnection()
-    {
-        if (configuration == null)
-        {
-            throw new InvalidOperationException("Configuration is not loaded.");
-        }
-
-        string connectionString = configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string not found.");
-        sql_con = new SqlConnection(connectionString);
-    }
-
-    private void LoadTables()
-    {
-        if (sql_con?.State == ConnectionState.Closed)
-            sql_con?.Open();
-        string query = "SELECT table_number, capacity, is_reserved FROM tables";
-        dataAdapter = new SqlDataAdapter(query, sql_con);
-        dataTable = new DataTable();
-        dataAdapter.Fill(dataTable);
-        tablesGridView!.DataSource = dataTable;
-
-        // Set the background color for reserved tables
-        foreach (DataGridViewRow row in tablesGridView.Rows)
-        {
-            if (Convert.ToBoolean(row.Cells["is_reserved"].Value) == true)
-            {
-                row.DefaultCellStyle.BackColor = System.Drawing.Color.LightCoral;
-            }
-        }
-
-        sql_con?.Close();
-    }
-
-    private void ReserveTable(int tableNumber, string customerName, DateTime reservationTime, int duration)
-    {
-        // Query to get the table id based on the table number
-        string getTableIdQuery = $"SELECT id FROM tables WHERE table_number = {tableNumber}";
-        int tableId = GetTableId(getTableIdQuery);
-
-        string query = $"INSERT INTO reservations (table_id, customer_name, reservation_time, duration) VALUES ({tableId}, '{customerName}', '{reservationTime.ToString("yyyy-MM-dd HH:mm:ss")}', {duration});";
-        ExecuteQuery(query);
-
-        query = $"UPDATE tables SET is_reserved = 1 WHERE table_number = {tableNumber};";
-        ExecuteQuery(query);
-
-        var timer = new System.Timers.Timer(duration * 60 * 1000);
-        timer.Elapsed += (sender, e) =>
-        {
-            string resetQuery = $"UPDATE tables SET is_reserved = 0 WHERE table_number = {tableNumber};";
-            ExecuteQuery(resetQuery);
-            timer.Stop();
-        };
-        timer.Start();
-
-        // Show success message
-        MessageBox.Show("تم الحجز بنجاح!");
-    }
-
-      private int GetTableId(string query)
-    {
-        if (sql_con?.State == ConnectionState.Closed)
-            sql_con?.Open();
-        SqlCommand sql_cmd = new SqlCommand(query, sql_con!);
-        int tableId = (int)sql_cmd.ExecuteScalar();
-        sql_con?.Close();
-        return tableId;
-    }
-
-    private void ExecuteQuery(string query)
-    {
-        if (sql_con?.State == ConnectionState.Closed)
-            sql_con?.Open();
-        SqlCommand sql_cmd = new SqlCommand(query, sql_con!);
-        sql_cmd.ExecuteNonQuery();
-        sql_con?.Close();
-    }
-
-    private void reserveButton_Click(object? sender, EventArgs e)
-    {
-        int tableNumber = int.Parse(txtTableNumber!.Text);
-        string customerName = txtCustomerName!.Text;
-        DateTime reservationTime = dateTimePicker!.Value;
-        int duration = int.Parse(txtDuration!.Text);
-
-        ReserveTable(tableNumber, customerName, reservationTime, duration);
-    }
-
-    private void tablesGridView_CellClick(object? sender, DataGridViewCellEventArgs e)
-    {
-        if (e.RowIndex >= 0)
-        {
-            DataGridViewRow row = tablesGridView!.Rows[e.RowIndex];
-            txtTableNumber!.Text = row.Cells["table_number"].Value.ToString();
-            dateTimePicker!.Value = DateTime.Now; // Reset to current time for a new reservation
-            txtDuration!.Text = "60"; // Default duration
-        }
     }
 }
