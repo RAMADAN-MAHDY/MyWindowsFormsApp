@@ -181,7 +181,7 @@ private void viewReservedButton_Click(object? sender, EventArgs e)
     try
     {
         string query = @"
-            SELECT  t.table_number, t.capacity, r.customer_name, r.reservation_time, r.duration
+            SELECT  r.id, t.table_number, t.capacity, r.customer_name, r.reservation_time, r.duration
             FROM tables t
             JOIN reservations r ON t.id = r.table_id
             WHERE t.is_reserved = 1";
