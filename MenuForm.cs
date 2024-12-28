@@ -33,19 +33,19 @@ public partial class MenuForm : Form
 
         this.nextButton.Location = new Point(370, 360);
         this.nextButton.Size = new Size(80, 30);
-        this.nextButton.Text = "Next";
+        this.nextButton.Text = "Sonraki";
         this.nextButton.Click += new EventHandler(this.NextButton_Click);
 
         this.prevButton.Location = new Point(50, 360);
         this.prevButton.Size = new Size(80, 30);
-        this.prevButton.Text = "Previous";
+        this.prevButton.Text = "Önceki";
         this.prevButton.Click += new EventHandler(this.PrevButton_Click);
 
         this.ClientSize = new Size(500, 400);
         this.Controls.Add(this.pictureBox);
         this.Controls.Add(this.nextButton);
         this.Controls.Add(this.prevButton);
-        this.Text = "Menu";
+        this.Text = "Menü";
     }
 
     private void PictureBox_Click(object sender, EventArgs e)

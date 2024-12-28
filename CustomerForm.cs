@@ -55,7 +55,7 @@ private void LoadTables()
 {
     if (sql_con?.State == ConnectionState.Closed)
         sql_con?.Open();
-    string query = "SELECT table_number, capacity FROM tables"; // إزالة عمود is_reserved
+    string query = "SELECT table_number, capacity FROM tables"; 
     dataAdapter = new SqlDataAdapter(query, sql_con);
     dataTable = new DataTable();
     dataAdapter.Fill(dataTable);
@@ -88,7 +88,7 @@ private void ReserveTable(int tableNumber, string customerName, DateTime reserva
 
     if (conflictCount > 0)
     {
-        MessageBox.Show("The reservation conflicts with an existing reservation. Please choose a different time or duration.");
+        MessageBox.Show("Rezervasyon, mevcut bir rezervasyonla çakışıyor. Lütfen farklı bir zaman veya süre seçin.");
         return;
     }
 
@@ -118,7 +118,7 @@ private void ReserveTable(int tableNumber, string customerName, DateTime reserva
     };
     timer.Start();
 
-    MessageBox.Show("تم الحجز بنجاح!");
+    MessageBox.Show("Rezervasyon başarıyla yapıldı!");
 }
 
 
@@ -148,7 +148,7 @@ private void reserveButton_Click(object? sender, EventArgs e)
         string.IsNullOrWhiteSpace(txtCustomerName!.Text) ||
         string.IsNullOrWhiteSpace(txtDuration!.Text))
     {
-        MessageBox.Show("يرجى ملء جميع الحقول المطلوبة.");
+        MessageBox.Show("Lütfen tüm gerekli alanları doldurun.");
         return;
     }
 
@@ -208,7 +208,7 @@ private void reserveButton_Click(object? sender, EventArgs e)
         this.lblTableNumber.Name = "lblTableNumber";
         this.lblTableNumber.Size = new System.Drawing.Size(174, 13);
         this.lblTableNumber.TabIndex = 6;
-        this.lblTableNumber.Text = "Table Number:";
+        this.lblTableNumber.Text = "Masa Numarası:";
         
         // 
         // txtTableNumber
@@ -226,7 +226,7 @@ private void reserveButton_Click(object? sender, EventArgs e)
         this.lblCustomerName.Name = "lblCustomerName";
         this.lblCustomerName.Size = new System.Drawing.Size(85, 13);
         this.lblCustomerName.TabIndex = 7;
-        this.lblCustomerName.Text = "Customer Name:";
+        this.lblCustomerName.Text = "Müşteri Adı:";
         
         // 
         // txtCustomerName
@@ -244,7 +244,7 @@ private void reserveButton_Click(object? sender, EventArgs e)
         this.lblReservationTime.Name = "lblReservationTime";
         this.lblReservationTime.Size = new System.Drawing.Size(96, 13);
         this.lblReservationTime.TabIndex = 8;
-        this.lblReservationTime.Text = "Reservation Time:";
+        this.lblReservationTime.Text = "Rezervasyon Zamanı:";
         
         // 
         // dateTimePicker
@@ -265,7 +265,7 @@ this.dateTimePicker.TabIndex = 3;
         this.lblDuration.Name = "lblDuration";
         this.lblDuration.Size = new System.Drawing.Size(50, 13);
         this.lblDuration.TabIndex = 9;
-        this.lblDuration.Text = "Set duration in minutes:";
+        this.lblDuration.Text = "Süreyi dakika cinsinden ayarlayın:";
         
         // 
         // txtDuration
@@ -283,7 +283,7 @@ this.dateTimePicker.TabIndex = 3;
         this.reserveButton.Name = "reserveButton";
         this.reserveButton.Size = new System.Drawing.Size(75, 23);
         this.reserveButton.TabIndex = 5;
-        this.reserveButton.Text = "Reserve";
+        this.reserveButton.Text = "Rezervasyon Yap";
         this.reserveButton.UseVisualStyleBackColor = false;
         this.reserveButton.Click += new System.EventHandler(this.reserveButton_Click);
         
@@ -304,7 +304,7 @@ this.dateTimePicker.TabIndex = 3;
         this.Controls.Add(this.txtTableNumber);
         this.Controls.Add(this.tablesGridView);
         this.Name = "CustomerForm";
-        this.Text = "CustomerForm";
+        this.Text = "MüşteriFormu";
         ((System.ComponentModel.ISupportInitialize)(this.tablesGridView)).EndInit();
         this.ResumeLayout(false);
         this.PerformLayout();

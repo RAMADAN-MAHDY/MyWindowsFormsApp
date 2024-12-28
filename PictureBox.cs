@@ -16,6 +16,6 @@ public class ZoomForm : Form
 
         this.ClientSize = new Size(800, 600);
         this.Controls.Add(this.pictureBox);
-        this.Text = "Zoomed Image";
+        this.Text = "Yakınlaştırılmış Görsel";
     }
 }

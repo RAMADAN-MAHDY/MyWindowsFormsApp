@@ -17,7 +17,7 @@
             this.adminButton.Name = "adminButton";
             this.adminButton.Size = new System.Drawing.Size(75, 23);
             this.adminButton.TabIndex = 0;
-            this.adminButton.Text = "Admin";
+            this.adminButton.Text = "Yönetici";
             this.adminButton.UseVisualStyleBackColor = true;
             this.adminButton.Click += new System.EventHandler(this.AdminButton_Click);
             // 
@@ -27,7 +27,7 @@
             this.customerButton.Name = "customerButton";
             this.customerButton.Size = new System.Drawing.Size(75, 23);
             this.customerButton.TabIndex = 1;
-            this.customerButton.Text = "Customer";
+            this.customerButton.Text = "Müşteri";
             this.customerButton.UseVisualStyleBackColor = true;
             this.customerButton.Click += new System.EventHandler(this.CustomerButton_Click);
             // 
@@ -37,7 +37,7 @@
             this.menuButton.Name = "menuButton";
             this.menuButton.Size = new System.Drawing.Size(75, 23);
             this.menuButton.TabIndex = 2;
-            this.menuButton.Text = "Menu";
+            this.menuButton.Text = "Menü";
             this.menuButton.UseVisualStyleBackColor = true;
             this.menuButton.Click += new System.EventHandler(this.MenuButton_Click);
             // 
