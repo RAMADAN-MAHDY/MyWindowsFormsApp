@@ -178,9 +178,6 @@ public partial class AdminForm : Form
 
     private void viewReservedButton_Click(object? sender, EventArgs e)
     {
-        string query = @"
-            SELECT  r.id, t.table_number, t.capacity, r.customer_name, r.reservation_time, r.duration
-
         try
         {
             string query = @"
